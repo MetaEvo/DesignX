@@ -2,7 +2,6 @@ import os
 import torch
 import math
 import time, copy, os, json
-import xgboost as  xgb
 import numpy as np
 from torch.nn import DataParallel
 from torch.nn.parallel import DistributedDataParallel as DDP
