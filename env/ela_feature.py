@@ -1,9 +1,4 @@
 import os
-os.environ['OMP_NUM_THREADS'] = '1'
-os.environ['OPENBLS_NUM_THREADS'] = '1'
-os.environ['GOTO_NUM_THREADS'] = '1'
-os.environ['MKL_NUM_THREADS'] = '1'
-os.environ['TORCH_NUM_THREADS'] = '1'
 from env.pflacco_v1.classical_ela_features \
 import calculate_ela_meta, calculate_ela_distribution,\
         calculate_information_content,calculate_nbc
