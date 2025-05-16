@@ -23,8 +23,8 @@ def display_optimizer(module: list):
             space = 0
             length = 0
             for mod in subpop:
-                if isinstance(mod, Pop_Size) or isinstance(mod, Reduce_Size):
-                    continue
+                # if isinstance(mod, Pop_Size) or isinstance(mod, Reduce_Size):
+                #     continue
                 if isinstance(mod, Multi_strategy):
                     module_str.append('Multi_strategy')
                     module_str.append([])
@@ -93,8 +93,8 @@ def display_optimizer(module: list):
                     
     else:
         for i, mod in enumerate(module[1]):
-            if isinstance(mod, Pop_Size) or isinstance(mod, Reduce_Size):
-                continue
+            # if isinstance(mod, Pop_Size) or isinstance(mod, Reduce_Size):
+            #     continue
             print(mod)
             if i < len(module[1]) - 1:
                 print(' |')
