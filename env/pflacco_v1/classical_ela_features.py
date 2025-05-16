@@ -1,9 +1,4 @@
 import os
-os.environ['OMP_NUM_THREADS'] = '1'
-os.environ['OPENBLS_NUM_THREADS'] = '1'
-os.environ['GOTO_NUM_THREADS'] = '1'
-os.environ['MKL_NUM_THREADS'] = '1'
-os.environ['TORCH_NUM_THREADS'] = '1'
 import math
 import numpy as np
 import pandas as pd
