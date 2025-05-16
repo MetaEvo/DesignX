@@ -1,13 +1,7 @@
 import os
-os.environ['OMP_NUM_THREADS'] = '1'
-os.environ['OPENBLS_NUM_THREADS'] = '1'
-os.environ['GOTO_NUM_THREADS'] = '1'
-os.environ['MKL_NUM_THREADS'] = '1'
-os.environ['TORCH_NUM_THREADS'] = '1'
 import scipy.stats as stats
 import numpy as np
 import copy
-from sklearn.cluster import KMeans
 from scipy.stats import qmc
 
 
