@@ -1,15 +1,9 @@
 import os
-os.environ['OMP_NUM_THREADS'] = '1'
-os.environ['OPENBLS_NUM_THREADS'] = '1'
-os.environ['GOTO_NUM_THREADS'] = '1'
-os.environ['MKL_NUM_THREADS'] = '1'
-os.environ['TORCH_NUM_THREADS'] = '1'
 from xml.dom import NotSupportedErr
 import numpy as np
 import copy
 import torch
 from torch.distributions import Normal, Categorical
-from sklearn.cluster import KMeans
 from scipy.stats import qmc
 import torch
 import scipy.stats as stats
