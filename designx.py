@@ -250,7 +250,7 @@ class ConfigX:
         self.actor.eval()
         self.critic.eval()
 
-    def rollout(self, batch, repeat=1):
+    def rollout(self, batch, seed=2025, repeat=1):
         batch_size = len(batch)
         q_lengths = torch.zeros(batch_size)
         for i in range(batch_size):
@@ -263,7 +263,7 @@ class ConfigX:
         traj_len = np.zeros(batch_size)
 
         for i in tqdm(range(repeat), desc = 'ConfigX Repeat', leave=False, position=1):
-            object_refs = [ray_all.remote(self, batch[j]) for j in range(batch_size)]
+            object_refs = [ray_all.remote(self, batch[j], seed+i) for j in range(batch_size)]
             results = ray.get(object_refs)
             for j in range(batch_size):
                 Ri, collect_gbesti, collect_curvei, traj_leni = results[j]
