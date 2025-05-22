@@ -12,3 +12,5 @@ pip install -r requirements.txt
 ```
 
 Then after **selecting the jupyter notebook kernel as DesignX**, we can execute the [inference code](inference.ipynb) step by step and see how DesignX solves the problems.
+
+Besides, the complete results of each baseline across all 3200 synthetic testing problem instances mentioned in Section 4.1 are in [the excel table](complete_results.xlsx).
