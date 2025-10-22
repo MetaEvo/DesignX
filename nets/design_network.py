@@ -1,4 +1,9 @@
 import os
+os.environ['OMP_NUM_THREADS'] = '1'
+os.environ['OPENBLS_NUM_THREADS'] = '1'
+os.environ['GOTO_NUM_THREADS'] = '1'
+os.environ['MKL_NUM_THREADS'] = '1'
+os.environ['TORCH_NUM_THREADS'] = '1'
 from torch import nn
 import torch, copy
 from nets.graph_layers import MultiHeadEncoder, MLP_for_actor, EmbeddingNet, PositionalEncoding, PositionalEncodingSin
@@ -48,7 +53,13 @@ class Actor(nn.Module):
         super(Actor, self).__init__()
         self.module_pool = module_pool
         self.state_dim = opts.state_dim
-        self.act_dim = module_pool.N + 1
+        self.act_feature = opts.act_feature
+        if self.act_feature == 'onehot':
+            self.act_dim = module_pool.N + 1
+        elif self.act_feature == 'binary':
+            self.act_dim = opts.op_dim
+        else:
+            raise ValueError
         self.max_length = 1024
         self.max_ep_len = 1024   
         self.embed_dim = opts.embedding_dim
@@ -56,38 +67,60 @@ class Actor(nn.Module):
         self.n_layer = opts.n_encode_layers
         self.n_head = opts.n_head
         self.op_dim = opts.op_dim
+        # self.llm_hidden = llm_hidden
         self.max_action = opts.maxAct
         self.maxCom=opts.maxCom
         self.opts = opts
         self.device = opts.device
-        self.device_fe = self.device
+        self.device_fe = opts.device_fe
         self.train_fe = False
+        self.fe_model = None
         self.state_embed = torch.nn.Linear(self.state_dim+4, self.embed_dim).to(self.device)
             
         self.action_embed = torch.nn.Linear(self.act_dim, self.embed_dim).to(self.device)  # + 1 additional start token
         self.pe = PositionalEncodingSin(self.embed_dim, self.max_length).to(self.device)
 
-        self.model = DecisionTransformer_actions(
-                state_dim=self.state_dim,
-                
-                action_tanh=False,
-                
-                hidden_size=self.embed_dim,
-                n_layer=self.n_layer,
-                n_head=self.n_head,
-                device=opts.device
-            ).to(opts.device)
+        if opts.use_GPT2:
+            self.model = DecisionTransformer_actions(
+                    state_dim=self.state_dim,
+                    
+                    action_tanh=False,
+                    
+                    hidden_size=self.embed_dim,
+                    n_layer=self.n_layer,
+                    n_head=self.n_head,
+                    device=opts.device
+                ).to(opts.device)
+        else:
+            self.model = mySequential(*(
+                            MultiHeadEncoder(self.n_head,
+                                            self.embed_dim,
+                                            opts.hidden_dim,
+                                            )
+                            for _ in range(self.n_layer))).to(opts.device)
         self.action_predict = nn.Linear(self.embed_dim, module_pool.N).to(self.device)
+        # self.to(opts.device)
+        # self.param_predict = nn.Linear(self.embed_dim, opts.maxAct)
         
+        print(self.get_parameter_number())
+
     def get_parameter_number(self):
         
         total_num = sum(p.numel() for p in self.parameters())
         trainable_num = sum(p.numel() for p in self.parameters() if p.requires_grad)
         return {'Actor: Total': total_num, 'Trainable': trainable_num}
     
-    def forward(self, prob_info, rollout=True):
+    def problem_embed(self, x, y, dim, fes, ub, lb):
+        # with torch.no_grad():
+            ela = self.fe_model(x, y).to(self.device_fe)
+            dimfes = torch.tensor([np.log10(dim)/5, np.log10(fes)/10, ub / 100., lb / 100.]).to(self.device_fe)
+            pinfo = self.dimfes_embed(dimfes.float().to(self.device_fe))
+            # print(ela.grad, pinfo.grad)
+            return self.state_embed(torch.concat([ela, pinfo])).to(self.device)
+
+    def forward(self, prob_info, rollout=False):
         """
-        prob_info: shape=[bs, state_dim]
+        prob_info: shape=[bs, state_dim] if ELA or NeurELA without train else dict{'x': ...}
         """
         bs = len(prob_info)
         prob_info = prob_info.float().to(self.device)
@@ -114,16 +147,30 @@ class Actor(nn.Module):
         action_features = torch.zeros(bs, self.maxCom,self.act_dim)  # for using one-hot coding as action features, use 0 as start token
         allow_reduction = torch.ones(bs, dtype=bool)   # disable reduction in ES sub population
         index = 0
+        if not self.opts.no_start_token:
+            if self.act_feature == 'binary':  # for using module id (in ConfigX paper) as action features
+                action_features[:,0,0] = 1    # use 1-000000-000000000 as the start token
+            elif self.act_feature == 'onehot':
+                action_features[:,0,-1] = 1
+            index = 1
             
         act_pb = tqdm(total=self.opts.maxCom, desc='Get Action', leave=False, position=1)
         while active.any():
             state_embedding = self.state_embed(prob_info[active])
-            if index > 1:
+            if (index > 0 and self.opts.no_start_token) or (index > 1):
                 state_embedding = state_embedding.clone().detach().to(self.device)
                 # state_embeddings = self.state_embed(sa)
             state_embeddings_expanded = state_embedding.unsqueeze(1)     # [64, 1, 16]
             
-            concatenated_embeddings = state_embeddings_expanded
+            if not self.opts.no_start_token:
+                af = action_features[active][:,:index,:].to(self.device)
+
+                action_embeddings = self.action_embed(af)
+
+                concatenated_embeddings = torch.cat((state_embeddings_expanded,
+                                                    action_embeddings,), dim=1)
+            else:
+                concatenated_embeddings = state_embeddings_expanded
                 
             concatenated_embeddings = self.pe(concatenated_embeddings)
 
@@ -158,7 +205,13 @@ class Actor(nn.Module):
                 logp[i] += lp[j]
                 entropy[i].append(ent[j])
                 
-                action_features[i, index, :] = torch.nn.functional.one_hot((action[j] + 1).to(torch.int64), num_classes=self.act_dim).to(torch.float32)
+                if self.act_feature == 'onehot':
+                    # + 1 to skip the start token (0)
+                    action_features[i, index, :] = torch.nn.functional.one_hot((action[j] + 1).to(torch.int64), num_classes=self.act_dim).to(torch.float32)
+                elif self.act_feature == 'binary':
+                    action_features[i, index, :] = mods[j].get_id()
+                else:
+                    raise ValueError
 
                 if mods[j].topo_type == 'Termination':  # current subpopulation is terminated
                     subpop_count[i] += 1

@@ -1,8 +1,24 @@
-# An example of DesignX inference
+# DesignX: Human-Competitive Algorithm Designer for Black-Box Optimization
 
-This project provides the example inference code of generating optimizers and controlling their hyper-parameters for the 20 problem instances in the jupyter notebook.
 
-Firstly, create the conda environment with python 3.9.18 and torch 2.3.1:
+This project provides the sourcecodes of DesignX, which has been recently accpeted by NeurIPS 2025
+
+## Citation
+
+The PDF version of the paper is available [here](https://arxiv.org/abs/2505.17866). If you find our ConfigX useful, please cite it in your publications or projects.
+
+```latex
+@inproceedings{guo2025designx,
+  title={DesignX: Human-Competitive Algorithm Designer for Black-Box Optimization},
+  author={Guo, Hongshu and Ma, Zeyuan and Ma, Yining and Zhang, Xinglin and Chen, Wei-Neng and Gong, Yue-Jiao},
+  booktitle={Proceedings of the 39th Conference on Neural Information Processing Systems},
+  year={2025}
+}
+```
+
+## Requirements
+
+Create the conda environment with python 3.9.18 and torch 2.3.1, then install packages:
 
 ```bash
 conda create -n DesignX python=3.9.18
@@ -11,6 +27,47 @@ conda install pytorch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 pytorch-cuda=
 pip install -r requirements.txt
 ```
 
-Then after **selecting the jupyter notebook kernel as DesignX**, we can execute the [inference code](inference.ipynb) step by step and see how DesignX solves the problems.
+## Train
 
-Besides, the complete results of each baseline across all 3200 synthetic testing problem instances mentioned in Section 4.1 are in [the excel table](complete_results.xlsx).
+To train the Agent-1, run:
+
+```bash
+python main.py
+```
+
+To train the Agent-2, run:
+```bash
+python main.py --train_cfx True
+```
+
+For more adjustable settings, please refer to `config.py` and `config_cfg.py` for details.
+
+Recording results: Log files will be saved to `./logs`, the file structure is as follow:
+```
+logs
+|--run_name
+   |--logging files
+   |--...
+```
+The saved checkpoints will be saved to `./outputs`, the file structure is as follow:
+```
+outputs
+|--run_name
+   |--epoch-0.pt
+   |--epoch-1.pt
+   |--...
+```
+
+## Rollout
+
+Modify `load_path` (The checkpoint saving directory, default to be "./outputs"), `load_name` (The run_name of the target Agent-1 model) and `load_epoch` (The epoch of the model) in `config.py` to assign the Agent-1 model.
+
+Modify `load_path` (The checkpoint saving directory, default to be "./outputs"), `load_name` (The run_name of the target Agent-2 model) and `load_epoch` (The epoch of the model) in `config_cfg.py` to assign the Agent-2 model.
+
+Then run:
+
+```bash
+python main.py --test
+```
+
+to rollout the assigned Agent-1 & 2 models.

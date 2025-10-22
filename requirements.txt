@@ -76,6 +76,7 @@ scipy==1.13.1
 six==1.17.0
 stack-data==0.6.3
 sympy
+tensorboardX==2.6.4
 threadpoolctl==3.6.0
 tokenizers==0.21.1
 torch==2.3.1
