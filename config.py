@@ -6,7 +6,7 @@ import argparse
 
 def get_options(args=None):
 
-    parser = argparse.ArgumentParser(description="")
+    parser = argparse.ArgumentParser(description="Configuration options for overall training & testing, and Agent-1")
 
     parser.add_argument('--train',default=None,action='store_true',help='switch to train mode')
     parser.add_argument('--test',default=None,action='store_true', help='switch to inference mode')
