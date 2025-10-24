@@ -15,7 +15,7 @@ The PDF version of the paper is available [here](https://arxiv.org/abs/2505.1786
   year={2025}
 }
 ```
-A sister projest we also recommend you to read and refer to is [ConfigX](https://github.com/MetaEvo/ConfigX), which is the basis of DesignX and the origin of the modular evolutionary operator space.
+A sister project we also recommend you to read and refer to is [ConfigX](https://github.com/MetaEvo/ConfigX), which is the basis of DesignX and the origin of the modular evolutionary operator space.
 
 ## Requirements
 
