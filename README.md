@@ -5,7 +5,7 @@ This project provides the sourcecodes of DesignX, which has been recently accpet
 
 ## Citation
 
-The PDF version of the paper is available [here](https://arxiv.org/abs/2505.17866). If you find our ConfigX useful, please cite it in your publications or projects.
+The PDF version of the paper is available [here](https://arxiv.org/abs/2505.17866). If you find our DesignX useful, please cite it in your publications or projects.
 
 ```latex
 @inproceedings{guo2025designx,
@@ -15,6 +15,7 @@ The PDF version of the paper is available [here](https://arxiv.org/abs/2505.1786
   year={2025}
 }
 ```
+A sister projest we also recommend you to read and refer to is [ConfigX](https://github.com/MetaEvo/ConfigX), which is the basis of DesignX and the origin of the modular evolutionary operator space.
 
 ## Requirements
 
