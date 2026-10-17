@@ -48,7 +48,7 @@ def get_options(args=None):
     parser.add_argument('--traindata_seed', type=int, default=1, help='random seed for dataset generation 28 for trainsize32, 2024 for 64')
     parser.add_argument('--testdata_seed', type=int, default=14, help='random seed for dataset generation 28 for trainsize32, 2024 for 64')
     parser.add_argument('--testseed', type=int, default=2025, help='random seed for dataset generation')
-    parser.add_argument('--repeat', type=int, default=1)
+    parser.add_argument('--repeat', type=int, default=5)
     parser.add_argument('--store_path', default='outputs/')
     parser.add_argument('--trainsize', type=int, default=32)
     parser.add_argument('--testsize', type=int, default=32)
@@ -59,7 +59,7 @@ def get_options(args=None):
     parser.add_argument('--pool_path', default = None, help='run name %Y%m%dT%H%M%S')
 
     # Testing settings -
-    parser.add_argument('--load_path', default = 'outputs/', help='path to load model parameters and optimizer state from')
+    parser.add_argument('--load_path', default = 'Pretrained_model/', help='path to load model parameters and optimizer state from')
     parser.add_argument('--load_name', default = None, help='run name %Y%m%dT%H%M%S')
     parser.add_argument('--load_epoch', default = None, help='epoch id')
 
@@ -83,7 +83,7 @@ def get_options(args=None):
     parser.add_argument('--op_embed_dim',default=16,type=int,help='feature dimension for backbone algorithm')
     parser.add_argument('--normalization', default='layer', help="normalization type, 'layer' (default) or 'batch'")
 
-    parser.add_argument('--lr_model', type=float, default=1e-4, help="learning rate for the actor network")
+    parser.add_argument('--lr_model', type=float, default=1e-3, help="learning rate for the actor network")
     parser.add_argument('--lr_decay', type=float, default=1., help='learning rate decay per epoch',)
 
     parser.add_argument('--gamma', type=float, default=0.99, help='reward discount factor for future rewards0.999')
