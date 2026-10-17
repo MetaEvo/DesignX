@@ -71,4 +71,4 @@ Then run:
 python main.py --test
 ```
 
-to rollout the assigned Agent-1 & 2 models.
+to rollout the assigned Agent-1 & 2 models. We also provide pretrained Agent-1 and Agent-2 models in `Pretrained_model`.

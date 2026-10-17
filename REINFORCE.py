@@ -281,7 +281,8 @@ def train(rank, agent, tb_logger):
                 best_avg_best_cost=avg_best
                 best_epoch=epoch+1
             best_epoch_list.append(best_epoch)
-
+            print('current_epoch:{}, best_epoch:{}'.format(epoch,best_epoch))
+            print('best_epoch_list:{}'.format(best_epoch_list))
             print(f'norm_performance:{test_norm_list}')
             print(f'best_norm:{np.argmin(test_norm_list)} {np.min(test_norm_list)}')
     
@@ -412,6 +413,22 @@ def train_configx(rank, agent, tb_logger):
 
     # training_problem, test_problem = make_dataset(opts)
     training_problem, test_problem = make_synthetic_dataset()
+
+    RS_train = []
+    for f in training_problem.data:
+        sample = np.random.rand(f.MaxFEs, f.dim) * (f.ub - f.lb) + f.lb
+        ff = copy.deepcopy(f)
+        ff.reset()
+        RS_train.append(np.min(ff.eval(sample)))
+    RS_train = np.array(RS_train)
+
+    RS_test = []
+    for f in test_problem.data:
+        sample = np.random.rand(f.MaxFEs, f.dim) * (f.ub - f.lb) + f.lb
+        ff = copy.deepcopy(f)
+        ff.reset()
+        RS_test.append(np.min(ff.eval(sample)))
+    RS_test = np.array(RS_test)
     
     # load ConfigX model
     cfg_opt = get_cfg_options()
@@ -524,6 +541,7 @@ def train_configx(rank, agent, tb_logger):
     mean_per_list=[]
     sigma_per_list=[]
     rew_per_list=[]
+    test_norm_list = []
 
     epoch = 0
     agent.save(epoch)
@@ -536,14 +554,20 @@ def train_configx(rank, agent, tb_logger):
     mean_per_list.append(np.mean(avg_best))
     sigma_per_list.append(sigma)
     rew_per_list.append(rew)
+    avg_best = np.mean(np.mean(avg_best, -1) / RS_test)
+    test_norm_list.append(avg_best)
     if epoch==opts.epoch_start:
         best_avg_best_cost=avg_best
         best_avg_best_rew=rew
         best_epoch=epoch
-    elif avg_best > best_avg_best_cost:
+    elif avg_best < best_avg_best_cost:
         best_avg_best_cost=avg_best
         best_epoch=epoch
     best_epoch_list.append(best_epoch)
+
+    print(f'norm_performance:{test_norm_list}')
+    print(f'best_norm:{np.argmin(test_norm_list)} {np.min(test_norm_list)}')
+
 
     # Start the actual training loop
     for epoch in range(opts.epoch_start, opts.epoch_end):
@@ -571,12 +595,18 @@ def train_configx(rank, agent, tb_logger):
             rew = np.mean(rew)
             sigma_per_list.append(sigma)
             rew_per_list.append(rew)
-            if epoch+1==opts.epoch_start:
+            avg_best = np.mean(np.mean(avg_best, -1) / RS_test)
+            test_norm_list.append(avg_best)
+            if epoch==opts.epoch_start:
                 best_avg_best_cost=avg_best
                 best_avg_best_rew=rew
-                best_epoch=epoch+1
-            elif avg_best > best_avg_best_cost:
+                best_epoch=epoch
+            elif avg_best < best_avg_best_cost:
                 best_avg_best_cost=avg_best
-                best_epoch=epoch+1
+                best_epoch=epoch
             best_epoch_list.append(best_epoch)
-            
+            print('current_epoch:{}, best_epoch:{}'.format(epoch,best_epoch))
+            print('best_epoch_list:{}'.format(best_epoch_list))
+            print(f'norm_performance:{test_norm_list}')
+            print(f'best_norm:{np.argmin(test_norm_list)} {np.min(test_norm_list)}')
+                    
